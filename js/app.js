@@ -28,6 +28,75 @@ function eventListeners() {
     fechaInput.addEventListener('change', datosCita);
     horaInput.addEventListener('change', datosCita);
     sintomasInput.addEventListener('change', datosCita);
+    document.addEventListener('DOMContentLoaded', () => {
+        crearBaseDeDatos();
+    });
+}
+
+/*Creando la base de datos...
+1.evento domcontendloaded y mandar llamar una funcion...
+2.método open, nombre y version, 
+3.Si hay error
+4.Si no hay error 
+5.Variable global que guarda el resultado del evento..
+pasarle ese esultado e igualarlo a la variable de la base de datos
+dentro de la misma funcion de oneSuccess...
+6.Crear otra variable en onupgradeneed que guarde a su vez el resultado con
+el parámetro de e
+7.Crear el objectStore, ponerle el resultado del evento de arriba, con el 
+método createObjectStore, el nombre de nuestra base de datos.
+8.Le ponemos un keyPath: (este es el índice) cuando se crea una base de datos
+de pueden agregarle índices, en este caso le vamos a poner que el indice
+va a ser EL ID.
+Esto porque cada cita que tenemos se le va agregando un id.
+9.Autoincement
+10.Definir las columnas, el primero es el nombre y el segundo es el keypath
+o sea el como vamos a acceder a los diferentes valores o campos
+/
+Claro que lo que vamos a guardar en la base de datos son los datos con los que estamos
+trabajando, por ejemplo todo lo que engloba el usurio, pero mi pregunta es
+si puedo hacer lo de la práctica, que si poníamos amm un usuario completo, lo 
+podríamos englobar así, si no me equivoco...
+
+/
+*/
+
+function crearBaseDeDatos(){
+    //Creando la base de datos
+    let crearDB = window.indexedDB.open('citas', 1.0);
+    
+    //En caso de que la base de datos llegue a fallar...
+    crearDB.onerror = function(){
+        console.log('Hubo un error al crear la base de datos');
+    }
+    //Si la base de datos se creo bien
+    crearDB.onsuccess = function(){
+        console.log('Base de datos creada correctamente');
+        DB = crearDB.result;
+    } 
+    //Configurar la base de datos
+    crearDB.onupgradeneeded = function(e){
+        /*console.log('configurando base de datos');
+        console.log(e.target.result);*/
+       //Capturando el evento en una variable
+        const db = e.target.result; 
+        //CREANDO EL OBJECTSTORE
+       const objectStore = db.createObjectStore('citas', {
+            keyPath: 'id',
+            autoIncrement: true, 
+
+        });
+            //Definir todas las columnas..
+            objectStore.createIndex('mascota', 'mascota', {unique: false});
+            objectStore.createIndex('propietario', 'propietario', {unique: false});
+            objectStore.createIndex('telefono', 'mascota', {unique: true});
+            objectStore.createIndex('fecha', 'fecha', {unique: false});
+            objectStore.createIndex('hora', 'hora', {unique: true});
+            objectStore.createIndex('sintomas', 'sintomas', {unique: false});
+            objectStore.createIndex('id', 'id', {unique: true});
+            console.log('Base de datos creada y lista...');
+    }
+
 }
 
 const citaObj = {
