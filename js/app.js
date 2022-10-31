@@ -1,3 +1,5 @@
+//INSERTAR REGISTROS
+
 const mascotaInput = document.querySelector('#mascota');
 const propietarioInput = document.querySelector('#propietario');
 const telefonoInput = document.querySelector('#telefono');
@@ -15,10 +17,9 @@ formulario.addEventListener('submit', nuevaCita);
 // Heading
 const heading = document.querySelector('#administra');
 
-
 let editando = false;
 
-
+let DB; 
 // Eventos
 eventListeners();
 function eventListeners() {
@@ -89,12 +90,13 @@ function crearBaseDeDatos(){
             //Definir todas las columnas..
             objectStore.createIndex('mascota', 'mascota', {unique: false});
             objectStore.createIndex('propietario', 'propietario', {unique: false});
-            objectStore.createIndex('telefono', 'mascota', {unique: true});
+            objectStore.createIndex('telefono', 'telefono', {unique: false});
             objectStore.createIndex('fecha', 'fecha', {unique: false});
             objectStore.createIndex('hora', 'hora', {unique: true});
             objectStore.createIndex('sintomas', 'sintomas', {unique: false});
             objectStore.createIndex('id', 'id', {unique: true});
             console.log('Base de datos creada y lista...');
+        
     }
 
 }
@@ -272,8 +274,21 @@ function nuevaCita(e) {
         // Añade la nueva cita
         administrarCitas.agregarCita({...citaObj});
 
-        // Mostrar mensaje de que todo esta bien...
-        ui.imprimirAlerta('Se agregó correctamente')
+        //Insertando en la base de datos de indexDB.
+        const transaction = DB.transaction(['citas'], 'readwrite');
+
+        //Habilitar el objectStore 
+        const objectStore = transaction.objectStore('citas');
+
+        objectStore.add(citaObj);
+        //En caso que la transacción sea completa, lo lógico es imprimir la alerta que da informacion...
+        transaction.oncomplete = function(){
+             // Mostrar mensaje de que todo esta bien...
+             ui.imprimirAlerta('Se agregó correctamente')
+   
+        }// Mostrar mensaje de que todo esta bien...
+        //ui.imprimirAlerta('Se agregó correctamente')
+   
     }
 
 
