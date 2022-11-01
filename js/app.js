@@ -1,5 +1,13 @@
-//INSERTAR REGISTROS
+//Mostrar las citas guardadas en indexDB al recargar la página...
 
+/*
+1.Buscar todos los de imprimirCitas
+y que tengan administrarCitas, o se que estén mandando llamar el arreglo
+A esto le vamos a quitar lo de administrarCitas...
+
+Igual en el de imprimir citas, donde extraemos la cita con la manera de objeto, adios..
+*/
+let DB; 
 const mascotaInput = document.querySelector('#mascota');
 const propietarioInput = document.querySelector('#propietario');
 const telefonoInput = document.querySelector('#telefono');
@@ -19,7 +27,6 @@ const heading = document.querySelector('#administra');
 
 let editando = false;
 
-let DB; 
 // Eventos
 eventListeners();
 function eventListeners() {
@@ -74,6 +81,9 @@ function crearBaseDeDatos(){
     crearDB.onsuccess = function(){
         console.log('Base de datos creada correctamente');
         DB = crearDB.result;
+
+        //MOSTRAR LAS CITAS AL CARGAR CUANDO INDEXDB YA ESTÉ LISTO
+        ui.imprimirCitas();
     } 
     //Configurar la base de datos
     crearDB.onupgradeneeded = function(e){
@@ -135,7 +145,8 @@ class Citas {
 
 class UI {
 
-    constructor({citas}) {
+    constructor() {
+    //const {citas} = citas;Lo podríamos extraer así o desde arriba... 
         this.textoHeading(citas);
     }
 
@@ -162,69 +173,121 @@ class UI {
             divMensaje.remove();
         }, 3000);
    }
-
-   imprimirCitas({citas}) { // Se puede aplicar destructuring desde la función...
+   //{citas} antes estaba esta parte porque estabamos extrayendo la cita
+   imprimirCitas() { // Se puede aplicar destructuring desde la función...
        
         this.limpiarHTML();
 
-        this.textoHeading(citas);
+        this.textoHeading(citas);     
 
-        citas.forEach(cita => {
-            const {mascota, propietario, telefono, fecha, hora, sintomas, id } = cita;
+        //LEER EL CONTENIDO DE LA BASE DE DATOS
+        const objectStore = DB.transaction('citas').objectStore('citas');
 
-            const divCita = document.createElement('div');
-            divCita.classList.add('cita', 'p-3');
-            divCita.dataset.id = id;
+        const total = objectStore.count();
+       
+        const fnTextoHeading = this.textoHeading;/*Aquí estamos solucionando el error
+    de que texto heading arriba, manda llamar una función, pero esa función hace referencia a 
+    citas nuevamente, por lo que ya no es necesaria y sólo nos trae errores.
+    Por lo que vamos al objectStore, entramos a el, creamos una variable y la igualamos
+    con textoHeading para que esa variable sea lo mismo que esa funcion y mnadamos llamar
+    esa misma variable que guarda la funcion del textoHeading dentro del succes de total.
+    
+    Y no ocupamos llamar la función exactamente, de hecho, si la llamamos nos da error
+    porque aparece que lo que estamos llamando no es una función, es como si
+    el mandar a llamar el nombre de la función pero no la función fuera un método 
+    para convertir e igualar una función a otra...*/
 
-            // scRIPTING DE LOS ELEMENTOS...
-            const mascotaParrafo = document.createElement('h2');
-            mascotaParrafo.classList.add('card-title', 'font-weight-bolder');
-            mascotaParrafo.innerHTML = `${mascota}`;
+       total.onsuccess = function(){
+           // console.log(total.result); 
+            fnTextoHeading(total.result);
+        }
+       /*Para leer los regsitros, para traernos todo lo que hay en las columnas hacemos...*/
+        objectStore.openCursor().onsuccess = function(e){/*.openCursor se encarga
+        de ir iterando sobre cada curso...*/
+            const cursor = e.target.result;
 
-            const propietarioParrafo = document.createElement('p');
-            propietarioParrafo.innerHTML = `<span class="font-weight-bolder">Propietario: </span> ${propietario}`;
+            if(cursor){
+                const {mascota, propietario, telefono, fecha, hora, sintomas, id } = cursor.value;
+            /*Aquí le hemos aplicado destructuring para la cita, ahora, esa cita
+            es donde le estuvimos aplicando destructurign, pero ya la cambié, por lo que
+            ahora lo que está tomando el lugar del resultado del evento después de iterar con
+            openCursor, es cursor, por lo que le ponemos cursor.value
+            esto para decir que queremos el valor
+            entonces sería, cursor.value*/
+                const divCita = document.createElement('div');
+                divCita.classList.add('cita', 'p-3');
+                divCita.dataset.id = id;
 
-            const telefonoParrafo = document.createElement('p');
-            telefonoParrafo.innerHTML = `<span class="font-weight-bolder">Teléfono: </span> ${telefono}`;
+                // scRIPTING DE LOS ELEMENTOS...
+                const mascotaParrafo = document.createElement('h2');
+                mascotaParrafo.classList.add('card-title', 'font-weight-bolder');
+                mascotaParrafo.innerHTML = `${mascota}`;
 
-            const fechaParrafo = document.createElement('p');
-            fechaParrafo.innerHTML = `<span class="font-weight-bolder">Fecha: </span> ${fecha}`;
+                const propietarioParrafo = document.createElement('p');
+                propietarioParrafo.innerHTML = `<span class="font-weight-bolder">Propietario: </span> ${propietario}`;
 
-            const horaParrafo = document.createElement('p');
-            horaParrafo.innerHTML = `<span class="font-weight-bolder">Hora: </span> ${hora}`;
+                const telefonoParrafo = document.createElement('p');
+                telefonoParrafo.innerHTML = `<span class="font-weight-bolder">Teléfono: </span> ${telefono}`;
 
-            const sintomasParrafo = document.createElement('p');
-            sintomasParrafo.innerHTML = `<span class="font-weight-bolder">Síntomas: </span> ${sintomas}`;
+                const fechaParrafo = document.createElement('p');
+                fechaParrafo.innerHTML = `<span class="font-weight-bolder">Fecha: </span> ${fecha}`;
 
-            // Agregar un botón de eliminar...
-            const btnEliminar = document.createElement('button');
-            btnEliminar.onclick = () => eliminarCita(id); // añade la opción de eliminar
-            btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
-            btnEliminar.innerHTML = 'Eliminar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+                const horaParrafo = document.createElement('p');
+                horaParrafo.innerHTML = `<span class="font-weight-bolder">Hora: </span> ${hora}`;
 
-            // Añade un botón de editar...
-            const btnEditar = document.createElement('button');
-            btnEditar.onclick = () => cargarEdicion(cita);
+                const sintomasParrafo = document.createElement('p');
+                sintomasParrafo.innerHTML = `<span class="font-weight-bolder">Síntomas: </span> ${sintomas}`;
 
-            btnEditar.classList.add('btn', 'btn-info');
-            btnEditar.innerHTML = 'Editar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>'
+                // Agregar un botón de eliminar...
+                const btnEliminar = document.createElement('button');
+                btnEliminar.onclick = () => eliminarCita(id); // añade la opción de eliminar
+                btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
+                btnEliminar.innerHTML = 'Eliminar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
 
-            // Agregar al HTML
-            divCita.appendChild(mascotaParrafo);
-            divCita.appendChild(propietarioParrafo);
-            divCita.appendChild(telefonoParrafo);
-            divCita.appendChild(fechaParrafo);
-            divCita.appendChild(horaParrafo);
-            divCita.appendChild(sintomasParrafo);
-            divCita.appendChild(btnEliminar)
-            divCita.appendChild(btnEditar)
+                // Añade un botón de editar...
+                const btnEditar = document.createElement('button');
+                btnEditar.onclick = () => cargarEdicion(cita);
 
-            contenedorCitas.appendChild(divCita);
-        });    
-   }
+                btnEditar.classList.add('btn', 'btn-info');
+                btnEditar.innerHTML = 'Editar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>'
 
-   textoHeading(citas) {
-        if(citas.length > 0 ) {
+                // Agregar al HTML
+                divCita.appendChild(mascotaParrafo);
+                divCita.appendChild(propietarioParrafo);
+                divCita.appendChild(telefonoParrafo);
+                divCita.appendChild(fechaParrafo);
+                divCita.appendChild(horaParrafo);
+                divCita.appendChild(sintomasParrafo);
+                divCita.appendChild(btnEliminar)
+                divCita.appendChild(btnEditar)
+
+                contenedorCitas.appendChild(divCita);
+                /*Sin embargo una vez que todo este html se genera, se va agregando 
+                el contenido en el DOM, le tenemos que decir, que vaya al siguiente elemento
+                por lo que vamos a iterar*/
+                
+                //Ve al siguiente elemento
+                /*Ese es un iterador que es básicamente, yo ya acabe, ve al siguiente elemento*/
+                cursor.continue();
+
+            }
+        }
+        /*Ahora, si podemos recordar, a imprimirCitas, se le mandaba llamar cuando
+        había un error, cuando editabamos una cita, pero no había una que mandara 
+        llamar imprimir citas cuando el documento estuviera listo.
+        Y como lo que estamos haciendo es al recargar, pos la queremos llamar cuando
+        el documento esté listo....
+        
+        Una manera que se me ocurre es mandar llamar el ui.imprimirCitas()
+        al momento de ya tener la base de datos creada y que todo esté saliendo bien
+
+        */
+
+    }
+
+   textoHeading(resultado) {
+    console.log(resultado);
+        if(resultado > 0 ) {
             heading.textContent = 'Administra tus Citas '
         } else {
             heading.textContent = 'No hay Citas, comienza creando una'
@@ -240,7 +303,7 @@ class UI {
 
 
 const administrarCitas = new Citas();
-console.log(administrarCitas);
+//console.log(administrarCitas);
 const ui = new UI(administrarCitas);
 
 function nuevaCita(e) {
@@ -292,8 +355,8 @@ function nuevaCita(e) {
     }
 
 
-    // Imprimir el HTML de citas
-    ui.imprimirCitas(administrarCitas);
+    // Imprimir el HTML de citas (administrarCitas esto ya no esta)
+    ui.imprimirCitas();
 
     // Reinicia el objeto para evitar futuros problemas de validación
     reiniciarObjeto();
@@ -317,7 +380,7 @@ function reiniciarObjeto() {
 function eliminarCita(id) {
     administrarCitas.eliminarCita(id);
 
-    ui.imprimirCitas(administrarCitas)
+    ui.imprimirCitas();
 }
 
 function cargarEdicion(cita) {
@@ -346,3 +409,9 @@ function cargarEdicion(cita) {
     editando = true;
 
 }
+/*Ya no le vamos a pasar las citas...
+
+Por qué?
+
+porque necesitamos ese arreglo como tal, 
+*/
