@@ -1,5 +1,4 @@
-//Mostrar las citas guardadas en indexDB al recargar la página...
-
+//EDITAR LAS CITAS...
 /*
 1.Buscar todos los de imprimirCitas
 y que tengan administrarCitas, o se que estén mandando llamar el arreglo
@@ -38,7 +37,11 @@ function eventListeners() {
     sintomasInput.addEventListener('change', datosCita);
     document.addEventListener('DOMContentLoaded', () => {
         crearBaseDeDatos();
-    });
+    });/*Poner así el evento al crear la base de datos y lo que sigue nos provocó un mm no error, pero
+    digamos que no es un resultado esperado, lo que está pasando es que claro, esto se crea, agarra, arroja, imprime
+    de la base datos al html con el evento de cuando el documento esté listo, te lo enseño, 
+    pero esto lo que hace es cargar los cambios, sólo al momento de recargar la página...*/
+
 }
 
 /*Creando la base de datos...
@@ -145,8 +148,8 @@ class Citas {
 
 class UI {
 
-    constructor() {
-    //const {citas} = citas;Lo podríamos extraer así o desde arriba... 
+    constructor({citas}) {
+    /*Lo podríamos extraer así o desde arriba...*/ 
         this.textoHeading(citas);
     }
 
@@ -185,7 +188,8 @@ class UI {
 
         const total = objectStore.count();
        
-        const fnTextoHeading = this.textoHeading;/*Aquí estamos solucionando el error
+        const fnTextoHeading = this.textoHeading;
+        /*Aquí estamos solucionando el error
     de que texto heading arriba, manda llamar una función, pero esa función hace referencia a 
     citas nuevamente, por lo que ya no es necesaria y sólo nos trae errores.
     Por lo que vamos al objectStore, entramos a el, creamos una variable y la igualamos
@@ -246,8 +250,80 @@ class UI {
 
                 // Añade un botón de editar...
                 const btnEditar = document.createElement('button');
-                btnEditar.onclick = () => cargarEdicion(cita);
+            
+/*Esta variable se crea porque al poner sólo el cursor.value que es lo que suplantó
+ a nuestro arreglo de citas al hacer la iteracion, me arroja al editar una cita habiendo más,
+ me arroja el último aunque le haya dado al primero, o sea me regresa el editado con la última cita, no con
+ la primera que fue la que puse, LO QUE PENSARÍA A INICIOS DE ESTO SERÍA QUE DE ALGUNA MANERA TIENE 
+ QUE RECONOCER A LO QUE LE ESTOY DANDO CLICK, PERO EN ESTE CASO YA SE SABE POR EL VALUE Y EL ID, LA
+ VERIFICACION YA ESTÁ ARRIBA.
+ Ahora, entoncces le paso una variable que guarde ese valor, la creo con const para que no sea dinámica
+ no pueda cambiar y se quede con el valor que yo le he colocado después de la validacion del id, esta misma
+ variable no puede ser la misma que la que ya he creado arriba, si lo intentamos nos va a llenar
+ todos los campos, pero con undefined, por lo que tenemos que de nueva cuenta, ponerle ahora el valor
+ de cursor.value que ya tenemos arriba y lo igualamos a cita...*/
+                const cita = cursor.value; 
 
+                btnEditar.onclick = () => cargarEdicion(cita);
+            /*Este cargar edicion se activa al momento de hacer click, después sigue
+            la función que carga la edicion como
+            tal, en esete punto reiniciams el objeto, llenamos los inputs con el valor que el usuario
+            ya haya colocado y cambiamos la variable editando que está en false en global y 
+            la cambiamos a true... 
+            También le cambiamos el mensaje del boton, le ponemos guardar cambios para que vuelva
+            a agregar la cita básicamente...
+            
+            Es por eso que le colocamos una validacion, si editando es igual a verdadero, o sea
+            si ya presionó este boton, mandamos llamar la instancia administrarCitas, ya que esta tiene
+            la información en el arreglo que vamos a utilizar y el método que vamos a usar(crear) 
+            que es editarCita...
+            
+            En este editarCita le pasamos un parámetro el cuál nos permitirá poner un argumento 
+            al mandar llamar esto en la validacion, accedemos al arreglo, iteramos sobre este mismo y
+            se lo asignamos.
+            Decimos, si el id de la cita, es igual a la citaActualizada.id(que esto es el parámetro que le acabamos
+            de agregar, el argumento que tomará el lugar de este será el objeto de citaObj
+            que es el que está recibiendo todos los datos que estoy llenando...)
+            Al decir, si este es igual a este, entonces...
+            Pasamos a otra validacion y decimos, si citaAcutalizada.id que es el objeto de citaObj 
+            entonces, haz la otra parte que no sé que significa...pero bueno ahorita la veo(
+                ( cita => cita.id === citaActualizada.id ? citaActualizada : cita)
+            )
+
+            Entonces en teoría, en ese punto de estar editando en la validacion de editando es true.
+            ese objeto que le pasamos ya es el objeto actualizado.
+
+            Por lo que le colocamos ya, la transicion, accedemos a citas, los permisos
+            creamos el objectStore y hacemos referencia a citas...
+
+            Entonces, le ponemos objectStore.put(), este put es lo que nos permite editar un registro
+            y le pasamos citaObj, que es el objeto ya actualizado.
+
+            Ahora, le ponemos transaction.oncomplete
+            este si podemos recordar es, si todo salió bien, entonces haz esto básicamente
+
+                
+                ui.imprimirAlerta('Guardado Correctamente');
+                    
+                formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+                    
+                editando = false;
+
+            Y en caso de error, de que realemnte no se esté editando lo que tendríamos que hacer sería ammm
+            
+            Ahora, nos sigue soltando un error, este se debe al iterador, a que antes
+            estabamos iterando sobre citas con el forEach, ya que citas, tomaba el lugar del arreglo
+            pero en este caso el que toma el lugar del arrelgo va a ser 
+            el e.target.result, que es lo mismo al cursor.value, entonces sólo lo
+            cambiamos 
+
+            Pero ahora, al hacer esto, al colocarle esto y darle en editar a una cita cuando hay varias
+            lo que sucede  es que me coloca la última cita, esto se debe a que ese cursor.value es dinámico, cada
+            iteracion va a ir cambiando.
+
+            Lo que podemos hacer es crear una variable para cursor.value y después pasarle esa variable en lugar
+            de el cursor.value, es por eso que es bueno guardar valores o demás en una variable y no colocarlos
+            directamente...*/
                 btnEditar.classList.add('btn', 'btn-info');
                 btnEditar.innerHTML = 'Editar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>'
 
@@ -322,11 +398,31 @@ function nuevaCita(e) {
         // Estamos editando
         administrarCitas.editarCita( {...citaObj} );
 
-        ui.imprimirAlerta('Guardado Correctamente');
+        /*Yo creo que sería por aquí, al editar lo tendríamos que mandar primero
+        esto a la base de datos y después imprimir en el html
+        
+        Se coloca aquí
+        ...*/
 
-        formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+        //Edita en indexDB
+        const transaction = DB. transaction(['citas'], 'readwrite');
+        const objectStore = transaction.objectStore('citas');
 
-        editando = false;
+        objectStore.put(citaObj);
+
+        transaction.oncomplete = function(){
+            console.log('se completo');
+       
+            ui.imprimirAlerta('Guardado Correctamente');
+
+            formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+    
+            editando = false;
+        }
+        transaction.onerror = function(){
+            console.log('la cago maestro');
+        }
+       
 
     } else {
         // Nuevo Registrando
@@ -349,20 +445,24 @@ function nuevaCita(e) {
              // Mostrar mensaje de que todo esta bien...
              ui.imprimirAlerta('Se agregó correctamente')
    
+             reiniciarObjeto();
+
+             formulario.reset();
         }// Mostrar mensaje de que todo esta bien...
         //ui.imprimirAlerta('Se agregó correctamente')
    
     }
 
 
-    // Imprimir el HTML de citas (administrarCitas esto ya no esta)
+/*
+    //Imprimir el HTML de citas (administrarCitas esto ya no esta)
     ui.imprimirCitas();
 
     // Reinicia el objeto para evitar futuros problemas de validación
     reiniciarObjeto();
 
     // Reiniciar Formulario
-    formulario.reset();
+    formulario.reset();*/
 
 }
 
@@ -384,7 +484,8 @@ function eliminarCita(id) {
 }
 
 function cargarEdicion(cita) {
-
+/*Aquí supongo que lo que tendría que hacer sería algo parecido a lo anterior...
+lo que podría ser igual, crear una variable y todo eso, cambiar eso y aquello*/
     const {mascota, propietario, telefono, fecha, hora, sintomas, id } = cita;
 
     // Reiniciar el objeto
@@ -409,9 +510,3 @@ function cargarEdicion(cita) {
     editando = true;
 
 }
-/*Ya no le vamos a pasar las citas...
-
-Por qué?
-
-porque necesitamos ese arreglo como tal, 
-*/
