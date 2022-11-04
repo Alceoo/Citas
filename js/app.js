@@ -1,4 +1,4 @@
-//EDITAR LAS CITAS...
+//ELIMINAR LAS CITAS
 /*
 1.Buscar todos los de imprimirCitas
 y que tengan administrarCitas, o se que estén mandando llamar el arreglo
@@ -130,6 +130,7 @@ function datosCita(e) {
 }
 
 // CLasses
+
 class Citas {
     constructor() {
         this.citas = []
@@ -137,13 +138,13 @@ class Citas {
     agregarCita(cita) {
         this.citas = [...this.citas, cita];
     }
-    editarCita(citaActualizada) {
+    /*editarCita(citaActualizada) {
         this.citas = this.citas.map( cita => cita.id === citaActualizada.id ? citaActualizada : cita)
-    }
+    }*/
 
-    eliminarCita(id) {
+    /*eliminarCita(id) {
         this.citas = this.citas.filter( cita => cita.id !== id);
-    }
+    }*/
 }
 
 class UI {
@@ -247,6 +248,104 @@ class UI {
                 btnEliminar.onclick = () => eliminarCita(id); // añade la opción de eliminar
                 btnEliminar.classList.add('btn', 'btn-danger', 'mr-2');
                 btnEliminar.innerHTML = 'Eliminar <svg fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+/*A ver, aquí lo que está pasando es, 
+creamos un btn de eliminar, después lo que hacemos es
+mandar llamar una funcion de eliminarCita al hacer un click en el btn de eliminar,
+en esta función le pasaremos un parámetro, el valor de este parámetro 
+será  lo que le pongamos al mandar llamar la función, o sea aquí en el mismo evento
+pero, qué queremos mandar llamar?
+
+Claro que lo que queremos mandar llamar es el id, pero, ¿Por qué el id?
+
+De alguna manera necesitmos identificar al producto al que le hemos dado click, claro
+que para eso antes debemos de extraer el valor del id del objeto que lo tiene...
+
+En este punto ya al tener el valor identificado de lo que le estamos dando click
+lo que necesitamos es...
+En esa función de eliminar cita, le pasamos la instancia de la clase, esto para hacerlo 
+orientado a objetos básicamente, que es la mejor manera...
+
+Ahora, mandamos llamar la instancia y creamos el nombre del método que vamos a usar, 
+este método va a ser eliminarCita y le pasamos el id.
+
+En este punto ya debimos de haberle puesto el valor del id que extrajimos anteriormente, 
+ya debimos de haberle puesto ese id a nuestra cita que manda llamar el evento.
+
+Significa que estamos mnadando el id de cada cita desde nuestro btnEliminar
+
+Ahora, en la clase, en el método igual le vamos a poner un parámetro,
+EL VALOR DE ESE PARÁMETRO DE NUESTRO MÉTODO EN LA CLASE YA ESTÁ 
+DEFINIDO, ESE VALOR ES EL OBJETO, PERO, POR QUÉ ES EL OBJETO?
+COMO TAL NO ES EL OBJETO, SINO EL ARREGLO, EL ARREGLO DE ADMINISTRARCITAS
+esto pasa o se asigna al momento que elejimos con qué datos vamos a trabajar
+en la misma clase, porque allí estamos haciendo una extracción del arreglo de citas
+, nosotros le decimos que, a ese arreglo lo filtre, y ahí viene la comparación.
+le decimos, le ponemos un parámetro porque todo método para array necesita
+un parámetro ya que son arrow functions y ese tomará el lugar de cada
+elemento en el arrelgo(cada objeto o cita).
+
+NO, ya vi una cosa, el valor del id(parámetro que le colocamos a la clase)
+es como igualarlo al id de abajo de la función, de esta manera es como se 
+comunica el valor del id de cada cita con el parámetro del método de la clase de citas, 
+esto es sencillamente bueno la vdd...
+
+Le decimos, traeme todos, excepto el que acabo de presionar, pero esto igual es una fomra
+de comparar y hacer excepciones...
+
+(veamos el video de porque funciona así)
+
+Pues vaya, claro que le estamos pasando el id de cada cita por cada iteración
+o sea, es como empaquetar la información por así decirlo.
+
+A ver, es básicamente, traeme todas excepto las que sean iguales al id que te estemos pasando
+del objeto, es eso.
+
+Después en la función, no en la clase, le decimos que nos vuelva a imprimir el html...
+---------------------------------
+
+Ahora, esto como lo haríamos para pasarlo a una base de datos?
+
+Debemos tener en cuenta varias cosas....
+
+1.La base de datos trabaja sobre y con informacion
+2.La información que maneja con las tablas se puede entender como un arreglo al convertirlo
+con los métodos que tenemos
+3.Entonces la base de datos toma el lugar de un arreglo básicamente...
+4.Toma el lugar del arreglo de citas...
+
+Premisa:
+        En mi programa lo que quiero en este momento es eliminar, eliminamos por el id, 
+        para ello necesitamos varias cosas, la función de eliminar citas después del evento
+        se queda.
+                //FUNCION ELIMIANRCITAS SE VUELVE ESTÁTICA...
+        
+        La función eliminarCitas sigue tomando el id(como forma de extraer ese valor de cada cita)
+        Se le coloca un parámetro, que pss podría ser el mismo que el id.
+        Pero lo siguiente que sería instanciarlo con la clase citas ya no.
+        ¿Qué podría hacer para quitar esa instancia de citas?
+        EN primera, el código que se queda es el ui.imprimirCitas, ya que necesitaremos
+        imprimirCitas para cuando se complete la transaccion...
+
+
+        quizás un objectStore como se acostumbra, se accede a la base de datos
+        con los métodos, le pasamos lo que queremos eliminar quizás y después viene lo demás.
+
+        Pero claro, para esto tenemos que hacer una transición, 
+        
+        const transaction = DB.transaction(['citas'], 'readwrite');
+
+        //Creamos el objectStore.
+        const objectStore = transaction.objectStore('citas');
+
+        //Eliminar un objeto por completo de la base de datos
+        objectStore.delete(id);
+
+        ui.imprimirCitas();
+
+        Pero aún así, esto no remplaza en lo absoluto a la clase
+        de CITAS.
+*/
+
 
                 // Añade un botón de editar...
                 const btnEditar = document.createElement('button');
@@ -478,9 +577,21 @@ function reiniciarObjeto() {
 
 
 function eliminarCita(id) {
-    administrarCitas.eliminarCita(id);
+    //Crear la transición, darle los permisos y hacer referencia a la DB
+    const transaction = DB.transaction(['citas'], 'readwrite');
+    const objectStore = transaction.objectStore('citas');
 
-    ui.imprimirCitas();
+    //Eliminar desde el id
+    objectStore.delete(id);
+
+    transaction.oncomplete = function(){
+        console.log(`eliminando la cita ${id}`);
+        ui.imprimirCitas();
+    }
+    transaction.onerror = function(){
+        console.log('No se pudo borrar esta wea');
+    }
+    
 }
 
 function cargarEdicion(cita) {
